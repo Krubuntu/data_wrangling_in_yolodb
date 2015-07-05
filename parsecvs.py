@@ -33,7 +33,7 @@ def parse_file(datafile):
                 data.append(line)
 
     # Do not change the line below
-    return (name, data)
+    return name, data
 
 
 def test():
