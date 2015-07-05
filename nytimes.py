@@ -31,7 +31,8 @@ nyt_article_key = os.environ['NYTIMES_ARTICLE_API_KEY']
 
 
 URL_MAIN = "http://api.nytimes.com/svc/"
-URL_POPULAR = URL_MAIN + "mostpopular/v2/mostviewed/all-sections/1.json"
+URL_POPULAR = URL_MAIN + "mostpopular/v2/"
+#URL_POPULAR = URL_MAIN + "mostpopular/v2/mostviewed/all-sections/1.json"
 API_KEY = { "popular": nyt_popular_key,
             "article": nyt_article_key}
 
@@ -86,10 +87,11 @@ def get_popular(url, kind, days, section="all-sections", offset=0):
     return data
 
 
-def save_file(kind, period):
+def save_file(kind="viewed", period=1):
     # This will process all results, by calling the API repeatedly with supplied offset value,
     # combine the data and then write all results in a file.
-    data = get_popular(URL_POPULAR, "viewed", 1)
+    data = get_popular(URL_POPULAR, kind, period)
+
     num_results = data["num_results"]
     full_data = []
     with codecs.open("popular-{0}-{1}-full.json".format(kind, period), encoding='utf-8', mode='w') as v:
@@ -109,4 +111,5 @@ def test():
 
 
 if __name__ == "__main__":
+    save_file()
     test()
