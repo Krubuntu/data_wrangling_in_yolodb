@@ -79,6 +79,7 @@ def parse_file(datafile):
         output_stats_dict['Day'] = Day
         output_stats_dict['Hour'] = Hour
         output_stats_dict['Max Load'] = region_stats_dict['maxvalue']
+        output_stats_dict['Station'] = region
         pprint(output_stats_dict)
         #print region_stats_dict
         # Add the stats dict to data dictionary using region as the key
@@ -92,8 +93,14 @@ def parse_file(datafile):
     return data
 
 def save_file(data, filename):
-    # YOUR CODE HERE
-    pass
+    with open(filename, 'w') as csvfile:
+        fieldnames = "Station|Year|Month|Day|Hour|Max Load".split("|")
+        writer = csv.DictWriter(csvfile, fieldnames=fieldnames, delimiter="|")
+        writer.writeheader()
+        # YOUR CODE HERE
+        for region in REGION_LIST:
+            writer.writerow(data[region])
+
 
 def test():
     open_zip(datafile)
