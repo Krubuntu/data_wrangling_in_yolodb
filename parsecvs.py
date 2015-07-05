@@ -24,7 +24,14 @@ def parse_file(datafile):
     name = ""
     data = []
     with open(datafile,'rb') as f:
-        pass
+        nrel_reader = csv.reader(f)
+        for index, line in enumerate(nrel_reader):
+            if index == 0:
+                name = line[1]
+                name = name.strip('"')
+            elif index > 1:
+                data.append(line)
+
     # Do not change the line below
     return (name, data)
 
