@@ -35,7 +35,7 @@ nyt_article_key = os.environ['NYTIMES_ARTICLE_API_KEY']
 URL_MAIN = "http://api.nytimes.com/svc/"
 URL_POPULAR = URL_MAIN + "mostpopular/v2/"
 #URL_POPULAR = URL_MAIN + "mostpopular/v2/mostviewed/all-sections/1.json"
-API_KEY = { "popular": nyt_popular_key,
+API_KEY = {"popular": nyt_popular_key,
             "article": nyt_article_key}
 
 
@@ -43,6 +43,27 @@ def get_from_file(kind, period):
     filename = "popular-{0}-{1}-full.json".format(kind, period)
     with open(filename, "r") as f:
         return json.loads(f.read())
+
+
+def find_thumbnails_in_article(data_struct, results_list):
+    if isinstance(data_struct, dict):
+        #print("We have a dict")
+        # pprint.pprint(data_struct)
+        if 'format' in data_struct and 'url' in data_struct and \
+                        data_struct['format'] == "Standard Thumbnail":
+            results_list.append(data_struct['url'])
+
+        for dict_value in data_struct.values():
+            find_thumbnails_in_article(dict_value, results_list)
+
+    elif isinstance(data_struct, list):
+        #print("We have a list")
+        # pprint.pprint(data_struct)
+        for list_item in data_struct:
+            find_thumbnails_in_article(list_item, results_list)
+
+    return results_list
+
 
 
 def article_overview(kind, period):
@@ -53,15 +74,8 @@ def article_overview(kind, period):
     for article in data:
         titles.append({article['section']: article['title']})
         #pprint.pprint(titles)
-        try:
-            for media_entry in article['media'][0]['media-metadata']:
-                pprint.pprint(media_entry)
-
-                if media_entry['format'] == "Standard Thumbnail":
-                    urls.append(media_entry['url'])
-                    print("Appending {0}".format(media_entry['url']))
-        except IndexError as ex:
-            print("Error: {0}".format(ex))
+        urls = find_thumbnails_in_article(article, urls)
+    pprint.pprint(len(urls))
 
     return titles, urls
 
@@ -105,7 +119,7 @@ def save_file(kind="viewed", period=1):
     # This will process all results, by calling the API repeatedly with supplied offset value,
     # combine the data and then write all results in a file.
     data = get_popular(URL_POPULAR, kind, period)
-
+    num_results = data["num_results"]
     full_data = []
     with codecs.open("popular-{0}-{1}-full.json".format(kind, period), encoding='utf-8', mode='w') as v:
         for offset in range(0, num_results, 20):
@@ -124,5 +138,5 @@ def test():
 
 
 if __name__ == "__main__":
-    save_file()
+    #save_file()
     test()
