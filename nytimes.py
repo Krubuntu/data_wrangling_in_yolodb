@@ -22,6 +22,8 @@ import json
 import codecs
 import requests
 import os
+import sys
+import pprint
 
 print(os.environ['NYTIMES_POPULAR_API_KEY'])
 
@@ -38,7 +40,7 @@ API_KEY = { "popular": nyt_popular_key,
 
 
 def get_from_file(kind, period):
-    filename = "popular-{0}-{1}.json".format(kind, period)
+    filename = "popular-{0}-{1}-full.json".format(kind, period)
     with open(filename, "r") as f:
         return json.loads(f.read())
 
@@ -48,6 +50,18 @@ def article_overview(kind, period):
     titles = []
     urls =[]
     # YOUR CODE HERE
+    for article in data:
+        titles.append({article['section']: article['title']})
+        #pprint.pprint(titles)
+        try:
+            for media_entry in article['media'][0]['media-metadata']:
+                pprint.pprint(media_entry)
+
+                if media_entry['format'] == "Standard Thumbnail":
+                    urls.append(media_entry['url'])
+                    print("Appending {0}".format(media_entry['url']))
+        except IndexError as ex:
+            print("Error: {0}".format(ex))
 
     return titles, urls
 
@@ -92,7 +106,6 @@ def save_file(kind="viewed", period=1):
     # combine the data and then write all results in a file.
     data = get_popular(URL_POPULAR, kind, period)
 
-    num_results = data["num_results"]
     full_data = []
     with codecs.open("popular-{0}-{1}-full.json".format(kind, period), encoding='utf-8', mode='w') as v:
         for offset in range(0, num_results, 20):
