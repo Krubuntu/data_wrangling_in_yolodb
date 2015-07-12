@@ -101,7 +101,7 @@ def process_file(f):
 
 def test():
     print ("Running a simple test...")
-    open_zip(datadir)
+    #open_zip(datadir)
     files = process_all(datadir)
     data = []
     for f in files:
