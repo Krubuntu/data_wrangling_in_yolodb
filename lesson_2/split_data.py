@@ -27,7 +27,6 @@ def split_file(filename):
         for line in f:
             if line.startswith("<?xml"):
                 if outfile_index == 0 and xml_count == 0:
-                    print("first record")
                     fname = "{}-{}".format(filename, outfile_index)
                     fname_fd = open(fname, 'w')
                 elif xml_count > 0:
@@ -35,16 +34,12 @@ def split_file(filename):
                         fname_fd.close()
                     except NameError as ex:
                         print("Error: {}".format(ex))
-                    print("subsequent")
                     outfile_index += 1
                     fname = "{}-{}".format(filename, outfile_index)
                     fname_fd = open(fname, 'w')
                 xml_count += 1
-                print("fname", fname)
-                print("xmlcount", xml_count)
+            fname_fd.write(line)
 
-
-        print(xml_count)
 
 def test():
     split_file(PATENTS)
