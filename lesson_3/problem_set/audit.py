@@ -29,6 +29,7 @@ import codecs
 import csv
 import json
 import pprint
+import re
 
 CITIES = 'cities.csv'
 
@@ -36,20 +37,37 @@ FIELDS = ["name", "timeZone_label", "utcOffset", "homepage", "governmentType_lab
           "populationTotal", "elevation", "maximumElevation", "minimumElevation", "populationDensity", "wgs84_pos#lat",
           "wgs84_pos#long", "areaLand", "areaMetro", "areaUrban"]
 
+URI_PATTERN = re.compile("^URI")
+W3_PATTERN = re.compile("^http://www.w3.org")
+
 
 def castable(input_string, input_type):
+    '''
+    Function to check the ability convert input_string into input_type via cast.
+
+    :param input_string: String containing the value we wish to attempt casting.
+    :param input_type: Targeted type into which we wish to cast.
+    :return: True or False, depending on ability to cast input_string into input_type's type.
+    '''
     try:
         return isinstance(input_type(input_string), input_type)
     except ValueError:
         return False
 
-def audit_row(input_string):
 
+def audit_row(input_string):
+    '''
+    Function to audit rows in input file and assess the type of field values.
+
+    :param input_string:
+    :return: We return actual "types," not strings representing types:
+            'list', NoneType, 'int', 'float', or catchall 'str.'
+    '''
     if input_string.startswith("{"):
         return list
     elif len(input_string) == 0 or input_string == "NULL":
-        print("We return None for {}".format(input_string))
-        return None
+        # We use type(None) since it does not appear possible to 'return NoneType'
+        return type(None)
     elif castable(input_string, float):
         if castable(input_string, int):
             return int
@@ -61,7 +79,7 @@ def audit_row(input_string):
 
 def audit_file(filename, fields):
     fieldtypes = dict()
-    # We create an empty set for each field proactively
+    # We create an empty set for each field proactively, before looping.
     for field in FIELDS:
         fieldtypes[field] = set()
 
@@ -69,17 +87,20 @@ def audit_file(filename, fields):
     with open(filename, "r") as input_file:
         reader = csv.DictReader(input_file)
         header = reader.fieldnames
+
         for row in reader:
-            for field in FIELDS:
-
-                row_type_audit = audit_row(row[field])
-                print("Field: {}\nRow value: {}\nAudit Type: {}\n".format(field, row[field], row_type_audit))
-                #print("type(row)", type(row))
-                #print(row[field])
-                #fieldtypes[field].add(audit_row(row[field]))
-        pprint.pprint(fieldtypes)
-        sys.exit()
-
+            if re.match(URI_PATTERN, row['URI']):
+                print("BAD URI: {}".format(row['URI']))
+                continue
+            elif re.match(W3_PATTERN, row['URI']):
+                print("BAD W3 URI: {}".format(row['URI']))
+                continue
+            else:
+                for field in FIELDS:
+                    # Call audit_row
+                    row_type_audit = audit_row(row[field])
+                    # Add the type we find to appropriate set. Syntax non-intuitive
+                    fieldtypes[field].add(row_type_audit)
 
     return fieldtypes
 
@@ -87,7 +108,9 @@ def audit_file(filename, fields):
 def test():
     fieldtypes = audit_file(CITIES, FIELDS)
 
-    pprint.pprint(fieldtypes)
+    pprint.pprint(fieldtypes["areaLand"])
+
+    pprint.pprint(fieldtypes["areaMetro"])
 
     assert fieldtypes["areaLand"] == set([type(1.1), type([]), type(None)])
     assert fieldtypes['areaMetro'] == set([type(1.1), type(None)])
