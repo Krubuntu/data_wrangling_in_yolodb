@@ -90,10 +90,10 @@ def audit_file(filename, fields):
 
         for row in reader:
             if re.match(URI_PATTERN, row['URI']):
-                print("BAD URI: {}".format(row['URI']))
+                #print("BAD URI: {}".format(row['URI']))
                 continue
             elif re.match(W3_PATTERN, row['URI']):
-                print("BAD W3 URI: {}".format(row['URI']))
+                #print("BAD W3 URI: {}".format(row['URI']))
                 continue
             else:
                 for field in FIELDS:
@@ -108,7 +108,8 @@ def audit_file(filename, fields):
 def test():
     fieldtypes = audit_file(CITIES, FIELDS)
 
-    pprint.pprint(fieldtypes["areaLand"])
+    #pprint.pprint(fieldtypes["areaLand"])
+    #pprint.pprint(fieldtypes["areaMetro"])
 
     pprint.pprint(fieldtypes["areaMetro"])
 
