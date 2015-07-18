@@ -24,6 +24,7 @@ SET of the types that can be found in the field. e.g.
 All the data initially is a string, so you have to do some checks on the values
 first.
 """
+import sys
 import codecs
 import csv
 import json
@@ -36,15 +37,26 @@ FIELDS = ["name", "timeZone_label", "utcOffset", "homepage", "governmentType_lab
           "wgs84_pos#long", "areaLand", "areaMetro", "areaUrban"]
 
 
-def audit_row(field_value):
-    if field_value.startswith("{"):
-        return list
-    elif len(field_value) == 0 or field_value == "NULL":
-        return None
+def castable(input_string, input_type):
+    try:
+        return isinstance(input_type(input_string), input_type)
+    except ValueError:
+        return False
 
+def audit_row(input_string):
+
+    if input_string.startswith("{"):
+        return list
+    elif len(input_string) == 0 or input_string == "NULL":
+        print("We return None for {}".format(input_string))
+        return None
+    elif castable(input_string, float):
+        if castable(input_string, int):
+            return int
+        else:
+            return float
     else:
         return str
-
 
 
 def audit_file(filename, fields):
@@ -59,10 +71,15 @@ def audit_file(filename, fields):
         header = reader.fieldnames
         for row in reader:
             for field in FIELDS:
-                #print("Field", field)
+
+                row_type_audit = audit_row(row[field])
+                print("Field: {}\nRow value: {}\nAudit Type: {}\n".format(field, row[field], row_type_audit))
                 #print("type(row)", type(row))
-                fieldtypes[field].add(audit_row(row[field]))
-        #pprint.pprint(fieldtypes)
+                #print(row[field])
+                #fieldtypes[field].add(audit_row(row[field]))
+        pprint.pprint(fieldtypes)
+        sys.exit()
+
 
     return fieldtypes
 
