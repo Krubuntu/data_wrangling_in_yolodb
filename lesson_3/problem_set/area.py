@@ -19,6 +19,10 @@ import pprint
 
 CITIES = 'cities.csv'
 
+def get_sig_digit_length(digit_input):
+    leading_digits = digit_input.split("e+")[0]
+    return len(leading_digits)
+
 
 def castable(input_string, input_type):
     '''
@@ -55,20 +59,28 @@ def audit_row(input_string):
     else:
         return str
 
-    
 def fix_area(area):
 
     # YOUR CODE HERE
     #print("Area:{}".format(area))
-    if type([]) == audit_row(area):
+    row_type = audit_row(area)
+
+    if row_type == type([]):
         clean_area = area.replace("{", "").replace("}", "")
         first_area, second_area = clean_area.split("|")
-        print("First: {} Second: {}".format(first_area, second_area))
+        #print("First: {} Second: {}".format(first_area, second_area))
+        if get_sig_digit_length(first_area) > get_sig_digit_length(second_area):
+            #print("Choosing", first_area)
+            return float(first_area)
+        else:
+            #print("Choosing", second_area)
+            return float(second_area)
+    elif row_type == type(None):
+        return None
     else:
-        pass
+        return row_type(area)
+
     return area
-
-
 
 def process_file(filename):
     # CHANGES TO THIS FUNCTION WILL BE IGNORED WHEN YOU SUBMIT THE EXERCISE
@@ -87,7 +99,8 @@ def process_file(filename):
             if "areaLand" in line:
                 line["areaLand"] = fix_area(line["areaLand"])
             data.append(line)
-
+    pprint.pprint("data 8: {}".format(data[8]["areaLand"]))
+    pprint.pprint("data 3: {}".format(data[3]["areaLand"]))
     return data
 
 
