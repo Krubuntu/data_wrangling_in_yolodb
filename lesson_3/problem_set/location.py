@@ -25,7 +25,7 @@ CITIES = 'cities.csv'
 
 def check_loc(point, lat, longi):
     # YOUR CODE HERE
-    lat_long_tuple = (lat, long)
+    lat_long_tuple = (lat, longi)
     point_list = point.split()
     return (point_list[0], point_list[1]) == lat_long_tuple
     #pass
