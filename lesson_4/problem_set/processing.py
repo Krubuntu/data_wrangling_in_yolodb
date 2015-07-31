@@ -43,31 +43,68 @@ import re
 
 DATAFILE = 'arachnid.csv'
 FIELDS = {'rdf-schema#label': 'label',
-         'URI': 'uri',
-         'rdf-schema#comment': 'description',
-         'synonym': 'synonym',
-         'name': 'name',
-         'family_label': 'family',
-         'class_label': 'class',
-         'phylum_label': 'phylum',
-         'order_label': 'order',
-         'kingdom_label': 'kingdom',
-         'genus_label': 'genus'}
+          'URI': 'uri',
+          'rdf-schema#comment': 'description',
+          'synonym': 'synonym',
+          'name': 'name',
+          'family_label': 'family',
+          'class_label': 'class',
+          'phylum_label': 'phylum',
+          'order_label': 'order',
+          'kingdom_label': 'kingdom',
+          'genus_label': 'genus'}
 
 
 def process_file(filename, fields):
-
-    process_fields = list(fields.keys())
     data = []
+
+    # Set to determine were to insert the field value.
+    class_set = ('kingdom', 'family', 'order', 'phylum', 'genus', 'class')
+
     with open(filename, "r") as f:
         reader = csv.DictReader(f)
         for i in range(3):
             l = next(reader)
 
         for line in reader:
-            # YOUR CODE HERE
-            pass
+            print("#" * 40)
+            results_dict = dict()
+            results_dict['classification'] = dict()
+            for field_key, field_value in fields.items():
+                temp_result = line[field_key].strip()
+                temp_result = check_if_null(temp_result)
+                # print("name:{} label:{}".format(line['name'], line['rdf-schema#label']))
+
+                if field_value in class_set:
+                    results_dict['classification'][field_value] = temp_result
+                elif not temp_result and field_key == 'name':
+                    results_dict[field_value] = remove_parens(line['rdf-schema#label'])
+                elif field_key == 'synonym':
+                    try:
+                        results_dict[field_value] = parse_array(temp_result)
+                    except TypeError:
+                        results_dict[field_value] = None
+                else:
+                    if field_key == 'rdf-schema#label':
+                        print("We have label: {}".format(temp_result))
+                        results_dict[field_value] = remove_parens(line['rdf-schema#label'])
+                    else:
+                        results_dict[field_value] = temp_result
+            pprint.pprint(results_dict)
+            data.append(results_dict)
+            print("#" * 40)
+
     return data
+
+
+def check_if_null(input):
+    if input == "NULL":
+        return None
+    return input
+
+
+def remove_parens(input_string):
+    return re.sub("\(.*\)", "", input_string).strip()
 
 
 def parse_array(v):
@@ -105,6 +142,7 @@ def test():
     assert data[17]["name"] == "Ogdenia"
     assert data[48]["label"] == "Hydrachnidiae"
     assert data[14]["synonym"] == ["Cyrene Peckham & Peckham"]
+
 
 if __name__ == "__main__":
     test()
