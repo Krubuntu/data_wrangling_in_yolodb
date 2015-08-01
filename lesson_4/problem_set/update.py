@@ -47,9 +47,10 @@ import codecs
 import csv
 import json
 import pprint
+import re
 
 DATAFILE = 'arachnid.csv'
-FIELDS ={'rdf-schema#label': 'label',
+FIELDS = {'rdf-schema#label': 'label',
          'binomialAuthority_label': 'binomialAuthority'}
 
 
@@ -62,13 +63,33 @@ def add_field(filename, fields):
         for i in range(3):
             l = reader.next()
         # YOUR CODE HERE
+        for line in reader:
+            rdf_schema_label = line['rdf-schema#label']
+            binomial_auth_label = line['binomialAuthority_label']
+            if not check_if_null(binomial_auth_label):
+                continue
+            else:
+                rdf_schema_label = remove_parens(rdf_schema_label)
+                data[rdf_schema_label] = binomial_auth_label
 
     return data
 
 
+def check_if_null(input):
+    if input == "NULL":
+        return None
+    return input
+
+
+def remove_parens(input_string):
+    return re.sub("\(.*\)", "", input_string).strip()
+
+
 def update_db(data, db):
-    # YOUR CODE HERE
-    pass
+    for rdf_schema_label, binomial_value in data.items():
+        found_doc = db.arachnid.update({'label': rdf_schema_label},
+                                       {'$set': {'classification.binomialAuthority': binomial_value}})
+        pprint.pprint(found_doc)
 
 
 def test():
@@ -86,7 +107,7 @@ def test():
 
     updated = db.arachnid.find_one({'label': 'Opisthoncana'})
     assert updated['classification']['binomialAuthority'] == 'Embrik Strand'
-    pprint.pprint(data)
+
 
 
 
