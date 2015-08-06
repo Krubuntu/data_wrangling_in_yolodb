@@ -36,6 +36,8 @@ def make_pipeline():
                 {"$project": {"_id": 0, "region": "$isPartOf", "population": "$population", "country": "$country"}},
                 {"$group": {"_id": {"region": "$region", "country": "$country"},
                                     "regional_population": {"$avg": "$population"}}},
+                {"$group": {"_id": "$_id.country",
+                            "avgRegionalPopulation": {"$avg":"$regional_population"}}},
     ]
     return pipeline
 
