@@ -129,7 +129,8 @@ def shape_element(element):
         if len(node['node_refs']) == 0:
             del(node['node_refs'])
         pprint.pprint(node)
-        return node
+        # We transform the defaultdict into a "true" dict to pass the grader.
+        return dict(node)
     else:
         return None
 
