@@ -104,7 +104,7 @@ def shape_element(element):
         # YOUR CODE HERE
         for elem in element.iter():
             node['type'] = elem.tag
-            print("elem.tag: {}, elem.attrib{}".format(elem.tag, elem.attrib))
+            #print("elem.tag: {}, elem.attrib{}".format(elem.tag, elem.attrib))
             if elem.tag == "node" or elem.tag == "way":
                 if elem.tag == "node":
                     node['pos'] = [float(elem.attrib['lat']), float(elem.attrib['lon'])]
@@ -148,6 +148,7 @@ def process_map(file_in, pretty=False):
                 else:
                     fo.write(json.dumps(el) + "\n")
     return data
+
 
 def test():
     # NOTE: if you are running this code on your computer, with a larger dataset,
