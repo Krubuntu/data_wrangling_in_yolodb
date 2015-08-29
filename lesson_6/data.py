@@ -91,22 +91,43 @@ should be turned into
 lower = re.compile(r'^([a-z]|_)*$')
 lower_colon = re.compile(r'^([a-z]|_)*:([a-z]|_)*$')
 problemchars = re.compile(r'[=\+/&<>;\'"\?%#$@\,\. \t\r\n]')
+addr_pattern = re.compile('^addr\:[A-Za-z]+$')
 
 CREATED = ["version", "changeset", "timestamp", "user", "uid"]
 
 
 def shape_element(element):
     node = collections.defaultdict(dict)
+    node['pos'] = list()
+    node['node_refs'] = list()
     if element.tag == "node" or element.tag == "way":
         # YOUR CODE HERE
         for elem in element.iter():
+            node['type'] = elem.tag
             print("elem.tag: {}, elem.attrib{}".format(elem.tag, elem.attrib))
-            if elem.tag == 'node':
-                node['pos'] = [float(elem.attrib['lat']), float(elem.attrib['lon'])]
+            if elem.tag == "node" or elem.tag == "way":
+                if elem.tag == "node":
+                    node['pos'] = [float(elem.attrib['lat']), float(elem.attrib['lon'])]
+
                 for element_attrib_key, element_attrib_value in elem.attrib.items():
                     if element_attrib_key in CREATED:
                         node['created'][element_attrib_key] = element_attrib_value
+                    elif element_attrib_key not in ['lat', 'lon']:
+                        node[element_attrib_key] = element_attrib_value
+            elif elem.tag == "tag":
+                if re.search(problemchars, elem.attrib['k']):
+                    continue
+                elif re.search(addr_pattern, elem.attrib['k']):
+                    # Split the tag figure out the desired key value.
+                    _, key = elem.attrib['k'].split(":")
+                    node['address'][key] = elem.attrib['v']
+                else:
+                    node[elem.attrib['k']] = elem.attrib['v']
+            elif elem.tag == "nd":
+                node['node_refs'].append(elem.attrib['ref'])
 
+        if len(node['node_refs']) == 0:
+            del(node['node_refs'])
         pprint.pprint(node)
         return node
     else:
